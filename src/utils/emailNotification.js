@@ -1,7 +1,9 @@
 import { Resend } from 'resend';
 import { pool as prisma } from '../config/database.js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Trim API key to remove any whitespace
+const apiKey = process.env.RESEND_API_KEY?.trim();
+const resend = new Resend(apiKey);
 
 /**
  * Send email notification to admin when a new complaint is submitted
@@ -44,8 +46,9 @@ export const sendNewComplaintEmail = async (complaint) => {
     }
 
     console.log('To:', adminEmails.join(', '));
+    console.log('📤 Sending email to Resend API...');
 
-    const { data, error } = await resend.emails.send({
+    const emailPayload = {
       from: process.env.RESEND_FROM_EMAIL,
       to: adminEmails,
       subject: `New Complaint Submitted - ${complaint.title}`,
@@ -73,16 +76,32 @@ export const sendNewComplaintEmail = async (complaint) => {
           </p>
         </div>
       `,
-    });
+    };
+
+    console.log('Email payload:', JSON.stringify({
+      from: emailPayload.from,
+      to: emailPayload.to,
+      subject: emailPayload.subject
+    }));
+
+    const { data, error } = await resend.emails.send(emailPayload);
 
     if (error) {
-      console.error('Error sending email:', error);
+      console.error('❌ Resend API Error:', JSON.stringify(error, null, 2));
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
       return;
     }
 
-    console.log('✓ Email notification sent to admin:', data);
+    console.log('✅ Email sent successfully! Resend response:', JSON.stringify(data, null, 2));
   } catch (error) {
-    console.error('Error sending new complaint email:', error.message);
+    console.error('❌ Exception in sendNewComplaintEmail:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code
+    });
   }
 };
 
