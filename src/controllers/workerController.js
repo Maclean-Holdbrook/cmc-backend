@@ -133,7 +133,7 @@ export const getTicketById = async (req, res, next) => {
       FROM tickets t
       LEFT JOIN complaints c ON c.id = t."complaintId"
       LEFT JOIN admins a ON a.id = t."adminId"
-      LEFT JOIN "ticketUpdates" tu ON tu."ticketId" = t.id
+      LEFT JOIN "ticket_updates" tu ON tu."ticketId" = t.id
       WHERE t.id = $1
       GROUP BY t.id, c.id, a.id
     `, [id]);
@@ -202,7 +202,7 @@ export const updateTicketStatus = async (req, res, next) => {
 
     // Create ticket update (message is now required)
     await prisma.query(
-      'INSERT INTO "ticketUpdates" (id, "ticketId", message, status, "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW())',
+      'INSERT INTO "ticket_updates" (id, "ticketId", message, status, "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW())',
       [id, message, status]
     );
 
@@ -231,7 +231,7 @@ export const updateTicketStatus = async (req, res, next) => {
         ) FILTER (WHERE tu.id IS NOT NULL) as updates
       FROM tickets t
       LEFT JOIN complaints c ON c.id = t."complaintId"
-      LEFT JOIN "ticketUpdates" tu ON tu."ticketId" = t.id
+      LEFT JOIN "ticket_updates" tu ON tu."ticketId" = t.id
       WHERE t.id = $1
       GROUP BY t.id, c.id
     `, [id]);
@@ -274,7 +274,7 @@ export const addTicketUpdate = async (req, res, next) => {
 
     // Create ticket update
     const updateResult = await prisma.query(
-      'INSERT INTO "ticketUpdates" (id, "ticketId", message, status, "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW()) RETURNING *',
+      'INSERT INTO "ticket_updates" (id, "ticketId", message, status, "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW()) RETURNING *',
       [id, message, status || ticket.status]
     );
 
