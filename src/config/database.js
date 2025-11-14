@@ -55,7 +55,7 @@ const connectDB = async () => {
   setTimeout(async () => {
     try {
       const client = await pool.connect();
-      console.log('✓ PostgreSQL Connected via pg Pool');
+      console.log('✓ PostgreSQL Connected via pg Pool (Supabase)');
       client.release();
     } catch (error) {
       console.error(`Database connection warning: ${error.message}`);

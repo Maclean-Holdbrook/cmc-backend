@@ -168,6 +168,10 @@ export const updateTicketStatus = async (req, res, next) => {
       return next(new AppError('Status is required', 400));
     }
 
+    if (!message || message.trim() === '') {
+      return next(new AppError('Update message is required', 400));
+    }
+
     const ticketResult = await prisma.query(
       'SELECT * FROM tickets WHERE id = $1',
       [id]
@@ -196,13 +200,11 @@ export const updateTicketStatus = async (req, res, next) => {
       [status, ticket.complaintId]
     );
 
-    // Create ticket update
-    if (message) {
-      await prisma.query(
-        'INSERT INTO "ticketUpdates" (id, "ticketId", message, status, "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW())',
-        [id, message, status]
-      );
-    }
+    // Create ticket update (message is now required)
+    await prisma.query(
+      'INSERT INTO "ticketUpdates" (id, "ticketId", message, status, "createdAt") VALUES (gen_random_uuid(), $1, $2, $3, NOW())',
+      [id, message, status]
+    );
 
     // Get updated ticket with complaint and updates
     const updatedTicketResult = await prisma.query(`
