@@ -663,3 +663,47 @@ export const updateAdminPassword = async (req, res, next) => {
     next(error);
   }
 };
+
+// Reset Worker Password (Admin only)
+export const resetWorkerPassword = async (req, res, next) => {
+  try {
+    const { workerId } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return next(new AppError('Please provide a new password', 400));
+    }
+
+    if (newPassword.length < 6) {
+      return next(new AppError('Password must be at least 6 characters', 400));
+    }
+
+    // Check if worker exists
+    const workerResult = await prisma.query(
+      'SELECT id, "firstName", "lastName", email FROM workers WHERE id = $1',
+      [workerId]
+    );
+
+    if (workerResult.rows.length === 0) {
+      return next(new AppError('Worker not found', 404));
+    }
+
+    const worker = workerResult.rows[0];
+
+    // Hash the new password
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update worker password
+    await prisma.query(
+      'UPDATE workers SET password = $1, "updatedAt" = NOW() WHERE id = $2',
+      [hashedPassword, workerId]
+    );
+
+    res.status(200).json({
+      status: 'success',
+      message: `Password reset successfully for ${worker.firstName} ${worker.lastName}`
+    });
+  } catch (error) {
+    next(error);
+  }
+};

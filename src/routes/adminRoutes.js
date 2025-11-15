@@ -11,7 +11,8 @@ import {
   getDashboardStats,
   updateTicket,
   updateAdminProfile,
-  updateAdminPassword
+  updateAdminPassword,
+  resetWorkerPassword
 } from '../controllers/adminController.js';
 import { protectAdmin } from '../middleware/auth.js';
 
@@ -34,6 +35,7 @@ router.post('/workers', createWorker);
 router.get('/workers', getAllWorkers);
 router.put('/workers/:id', updateWorker);
 router.delete('/workers/:id', deleteWorker);
+router.put('/workers/:workerId/reset-password', resetWorkerPassword);
 
 // Admin profile management
 router.put('/profile', updateAdminProfile);
